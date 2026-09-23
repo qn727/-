@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>情念纪念卡</title>
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+html, body{
+    width:100%;
+    height:100%;
+    background: transparent !important;
+}
+body{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+.card{
+    position:relative;
+    width:min(92vw, 850px);
+    aspect-ratio:16 / 10;
+    max-height: 92vh;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(225, 225, 230, 0.25) 50%, rgba(210, 215, 225, 0.35) 100%);
+    backdrop-filter: blur(25px) saturate(180%);
+    -webkit-backdrop-filter: blur(25px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius:28px;
+    overflow:hidden;
+    padding: 6% 7%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.corner-decor{ position: absolute; top: 24px; right: 28px; display: flex; flex-direction: column; align-items: center; z-index: 12; transform: rotate(4deg); transition: transform 0.3s ease; }
+@media (hover: hover) {
+    .corner-decor:hover{ transform: rotate(0deg) scale(1.05); }
+}
+.tape{ width: 68px; height: 18px; background: rgba(255, 255, 255, 0.45); border-left: 2px dashed rgba(255, 255, 255, 0.6); border-right: 2px dashed rgba(255, 255, 255, 0.6); backdrop-filter: blur(5px); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05); margin-bottom: -6px; z-index: 2; }
+.tag-badge{ padding: 6px 14px; background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06); display: flex; align-items: center; gap: 5px; color: #444; font-size: 12px; font-weight: 600; white-space: nowrap; z-index: 1; }
+.tag-badge .tag-text{ outline: none; }
+
+.theme-selector{ position:absolute; display:grid; grid-template-columns: repeat(4, 1fr); gap:6px; width:320px; background:rgba(255, 255, 255, 0.95); padding:10px; border-radius:20px; backdrop-filter:blur(15px); border:1px solid rgba(255,255,255,0.9); z-index:9999; box-shadow:0 8px 24px rgba(0,0,0,0.15); opacity: 0; pointer-events: none; transform: translateY(6px) scale(0.95); transition: opacity 0.25s, transform 0.25s; }
+.theme-selector.active{ opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
+.theme-btn{ border:none; background:#f0f0f0; padding:6px 4px; font-size:12px; font-weight:600; color:#555; border-radius:12px; cursor:pointer; transition:all 0.2s; text-align:center; }
+.theme-btn.active{ background:#007aff; color:#fff; }
+
+.editable-text{ outline:none; display:inline-block; cursor:text; transition: background 0.2s ease, box-shadow 0.2s ease; }
+
+.date-clickable{ cursor:pointer; outline: none; padding: 2px 6px; user-select: none; transition: background 0.2s ease, border-radius 0.2s ease; }
+
+.text-toolbar{ position:absolute; display:flex; align-items:center; gap:6px; background:rgba(255, 255, 255, 0.95); padding:5px 10px; border-radius:10px; box-shadow:0 6px 20px rgba(0,0,0,0.15); border:1px solid rgba(255, 255, 255, 0.9); z-index:9999; backdrop-filter:blur(12px); white-space:nowrap; user-select:none; opacity: 0; pointer-events: none; transform: translateY(-6px) scale(0.95); transition: all 0.25s; }
+.text-toolbar.active{ opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
+.text-toolbar button, .text-toolbar .date-opt-btn-label{ border:none; background:#eee; color:#333; padding:4px 9px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:bold; transition: background 0.2s, transform 0.1s; }
+.text-toolbar button.active-btn{ background:#007aff; color:#fff; }
+.text-toolbar input[type="number"]{ width:42px; text-align:center; border:1px solid #ccc; border-radius:4px; font-size:12px; padding:2px; transition: border-color 0.2s; }
+.toolbar-divider{ width:1px; height:18px; background:#ccc; margin:0 2px; }
+
+.date-vertical-group{ display: none; flex-direction: column; gap: 3px; }
+.date-opt-btn, .date-opt-btn-label{ font-size: 11px !important; padding: 3px 8px !important; background: #f0f0f0 !important; color: #444 !important; text-align: center; display: inline-block; position: relative; }
+.date-opt-btn.active-date, .date-opt-btn-label.active-date{ background: #007aff !important; color: #fff !important; }
+
+.date-overlay-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.title{ color:#222; font-size:clamp(22px, 4.5vw, 40px); font-weight:700; margin-bottom: 12px; }
+.subtitle{ color:#222; font-size:clamp(22px, 4.5vw, 40px); font-weight:700; margin-top: 12px; }
+.middle-connect-row{ display: flex; align-items: center; justify-content: space-between; width: 100%; margin: 8px 0; }
+
+.avatar-wrapper{ 
+    width: clamp(56px, 12vw, 92px); 
+    aspect-ratio: 1 / 1; 
+    position: relative; 
+    border-radius: 50%;
+    padding: 0;
+    border: 2px solid rgba(255, 255, 255, 0.85);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+    transition: all 0.35s cubic-bezier(0.25, 1, 0.5, 1); 
+    z-index: 5; 
+    flex-shrink: 0;
+    cursor: pointer;
+    overflow: hidden;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(220, 226, 238, 0.65) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+}
+.avatar-wrapper.left{ transform: rotate(-2deg); }
+.avatar-wrapper.right{ transform: rotate(2deg); }
+
+@media (hover: hover) {
+    .theme-btn:hover{ background:#e5e5e5; color:#111; transform: translateY(-1px); }
+    .editable-text:hover, .editable-text:focus{ background:rgba(255,255,255,0.4); border-radius:6px; }
+    .date-clickable:hover{ background: rgba(255, 255, 255, 0.4); border-radius: 6px; }
+    .text-toolbar button:hover, .text-toolbar .date-opt-btn-label:hover{ background:#e0e0e0; }
+    .avatar-wrapper:hover{ 
+        z-index: 10; 
+        transform: rotate(0deg) scale(1.08); 
+        border-color: rgba(255, 255, 255, 1);
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12), 0 4px 10px rgba(0, 0, 0, 0.06);
+    }
+    .avatar-wrapper:hover .avatar-placeholder {
+        transform: scale(1.1);
+        opacity: 0.85;
+    }
+    .avatar-wrapper.has-img:hover .avatar-hover-overlay {
+        opacity: 1;
+    }
+}
+
+.avatar-placeholder {
+    width: 58%;
+    height: 58%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.avatar-placeholder svg {
+    width: 100%;
+    height: 100%;
+    fill: #6e798c;
+}
+
+.avatar{ 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+}
+
+.avatar-hover-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.22);
+    backdrop-filter: blur(2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    z-index: 3;
+    pointer-events: none;
+}
+.avatar-hover-overlay svg {
+    width: 42%;
+    height: 42%;
+    fill: #ffffff;
+}
+
+.line-container{ position: relative; flex: 1; height: 50px; margin: 0 12px; cursor: pointer; }
+.line-path{ position: absolute; left: 0; top: 5px; width: 100%; height: 40px; overflow: visible; }
+.line-path path{ fill: none; stroke: #8a8387; stroke-width: 1.5; transition: all 0.3s; }
+.icon-item{ position: absolute; width: 26px; height: 26px; z-index: 5; transition: all 0.3s; }
+.pos-1{ left: 10%; top: 12px; transform: scale(.78); } .pos-2{ left: 36%; top: 18px; transform: scale(.92); }
+.pos-3{ left: 62%; top: 12px; transform: scale(.76); } .pos-4{ left: 86%; top: 18px; transform: scale(.88); }
+.date-text{ position: absolute; right: 7%; bottom: 6%; color: #555; font-size: clamp(12px, 2.2vw, 17px); font-weight: 500; z-index: 10; }
+
+.file-input{ display:none; }
+
+@media(max-width:600px){
+    .card{ width:94vw; border-radius:18px; padding: 8% 6%; }
+    .corner-decor{ top: 14px; right: 16px; transform: scale(0.85) rotate(4deg); }
+    .theme-selector{ width:280px; grid-template-columns: repeat(4, 1fr); }
+    .line-container{ margin: 0 6px; height: 36px; }
+    .line-path{ top: 2px; height: 30px; }
+    .icon-item{ width: 18px; height: 18px; }
+    .pos-1{ top: 6px; } .pos-2{ top: 12px; } .pos-3{ top: 6px; } .pos-4{ top: 12px; }
+}
+</style>
+</head>
+<body>
+
+<div class="card" id="cardContainer">
+    <div class="corner-decor" id="cornerDecor">
+        <div class="tape"></div>
+        <div class="tag-badge">
+            <span class="icon" id="tagIcon">✨</span>
+            <span class="tag-text" id="tagText" contenteditable="true">TODAY'S LOVE</span>
+        </div>
+    </div>
+
+    <div class="theme-selector" id="themeSelector">
+        <button class="theme-btn active" id="btn-heart" onclick="switchTheme('heart', event)">💖 爱心</button>
+        <button class="theme-btn" id="btn-paw" onclick="switchTheme('paw', event)">🐾 猫爪</button>
+        <button class="theme-btn" id="btn-dot" onclick="switchTheme('dot', event)">🔘 圆球</button>
+        <button class="theme-btn" id="btn-bear" onclick="switchTheme('bear', event)">🧸 小熊</button>
+        <button class="theme-btn" id="btn-music" onclick="switchTheme('music', event)">🎵 音符</button>
+        <button class="theme-btn" id="btn-star" onclick="switchTheme('star', event)">⭐ 星星</button>
+        <button class="theme-btn" id="btn-cloud" onclick="switchTheme('cloud', event)">☁️ 云朵</button>
+        <button class="theme-btn" id="btn-moon" onclick="switchTheme('moon', event)">🌙 月亮</button>
+    </div>
+
+    <div class="text-toolbar" id="textToolbar">
+        <button id="btnBold">B</button>
+        <div class="toolbar-divider"></div>
+        <button id="btnFontDec">A-</button>
+        <input type="number" id="inputFontSize" value="32"> 
+        <button id="btnFontInc">A+</button>
+        <div id="dateControlGroupWrapper" style="display:none; align-items:center;">
+            <div class="toolbar-divider"></div>
+            <div class="date-vertical-group" id="dateControlGroup">
+                <button id="btnAutoDate" class="date-opt-btn">🔄 自动更新</button>
+                <div class="date-opt-btn-label" id="btnTriggerMemoDate">
+                    📅 选择纪念
+                    <input type="date" id="nativeDatePicker" class="date-overlay-input">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="title editable-text" contenteditable="true">与你同心</div>
+
+    <div class="middle-connect-row">
+        <!-- 左侧头像框 -->
+        <div class="avatar-wrapper left" id="avatarWrap1">
+            <div class="avatar-placeholder">
+                <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            </div>
+            <img id="avatar1" class="avatar" src="" alt="Avatar 1">
+            <div class="avatar-hover-overlay">
+                <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            </div>
+        </div>
+
+        <div class="line-container" id="lineContainer">
+            <svg class="line-path" viewBox="0 0 500 50" preserveAspectRatio="none">
+                <path id="mainPath" d="M0 25 C60 15 100 35 150 25 C200 15 240 35 290 25 C340 15 380 35 430 25 C470 17 490 28 500 25"/>
+            </svg>
+            <div class="icon-item pos-1" id="icon1"></div>
+            <div class="icon-item pos-2" id="icon2"></div>
+            <div class="icon-item pos-3" id="icon3"></div>
+            <div class="icon-item pos-4" id="icon4"></div>
+        </div>
+
+        <!-- 右侧头像框 -->
+        <div class="avatar-wrapper right" id="avatarWrap2">
+            <div class="avatar-placeholder">
+                <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            </div>
+            <img id="avatar2" class="avatar" src="" alt="Avatar 2">
+            <div class="avatar-hover-overlay">
+                <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            </div>
+        </div>
+    </div>
+
+    <div class="subtitle editable-text" contenteditable="true">失之我幸</div>
+    <div class="date-text date-clickable" id="dateText">2026年05月20日</div>
+
+    <input type="file" id="file1" class="file-input" accept="image/*">
+    <input type="file" id="file2" class="file-input" accept="image/*">
+</div>
+
+<script>
+const themes = {
+    heart: { pathStroke: "#8a8387", pathDash: "none", svg: `<svg viewBox="0 0 24 24"><path fill="#e8c0cd" stroke="#a0959a" stroke-width="1" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 C2 5.42 4.42 3 7.5 3 c1.74 0 3.41 .81 4.5 2.09 C13.09 3.81 14.76 3 16.5 3 C19.58 3 22 5.42 22 8.5 c0 3.78-3.4 6.86-8.55 11.54 L12 21.35z"/></svg>` },
+    paw: { pathStroke: "#a09088", pathDash: "4 4", svg: `<svg viewBox="0 0 100 100"><path fill="#f4b8c7" stroke="#8a736c" stroke-width="3" d="M 50 45 C 32 45, 22 62, 30 80 C 36 92, 64 92, 70 80 C 78 62, 68 45, 50 45 Z" /><circle cx="26" cy="36" r="8" fill="#f4b8c7" stroke="#8a736c" stroke-width="2.5" /><circle cx="42" cy="24" r="9" fill="#f4b8c7" stroke="#8a736c" stroke-width="2.5" /><circle cx="60" cy="24" r="9" fill="#f4b8c7" stroke="#8a736c" stroke-width="2.5" /><circle cx="76" cy="36" r="8" fill="#f4b8c7" stroke="#8a736c" stroke-width="2.5" /></svg>` },
+    dot: { pathStroke: "#999999", pathDash: "2 4", svg: `<svg viewBox="0 0 30 30"><circle cx="15" cy="15" r="10" fill="#e0e0e0" stroke="#888888" stroke-width="1.5" /><circle cx="12" cy="12" r="3" fill="#ffffff" /></svg>` },
+    bear: { pathStroke: "#bcaaa4", pathDash: "none", svg: `<svg viewBox="0 0 100 100"><circle cx="30" cy="30" r="14" fill="#d7ccc8" stroke="#8d6e63" stroke-width="3" /><circle cx="70" cy="30" r="14" fill="#d7ccc8" stroke="#8d6e63" stroke-width="3" /><circle cx="50" cy="55" r="32" fill="#d7ccc8" stroke="#8d6e63" stroke-width="3" /><ellipse cx="50" cy="62" rx="15" ry="11" fill="#fff" stroke="#8d6e63" stroke-width="2" /><circle cx="50" cy="57" r="4" fill="#5d4037" /><circle cx="38" cy="48" r="3.5" fill="#5d4037" /><circle cx="62" cy="48" r="3.5" fill="#5d4037" /></svg>` },
+    music: { pathStroke: "#c8d6e5", pathDash: "none", svg: `<svg viewBox="0 0 100 100"><path fill="#e3d5ca" stroke="#a29bfe" stroke-width="3" d="M35 70 A 15 12 0 1 1 20 58 A 15 12 0 0 1 35 70 V 20 H 65 V 35 H 35 Z" transform="rotate(-10 50 50)"/></svg>` },
+    star: { pathStroke: "#e9c46a", pathDash: "3 3", svg: `<svg viewBox="0 0 100 100"><polygon fill="#ffe3a8" stroke="#d4a373" stroke-width="3" points="50,10 64,38 95,43 72,65 78,96 50,81 22,96 28,65 5,43 36,38"/></svg>` },
+    cloud: { pathStroke: "#74b9ff", pathDash: "none", svg: `<svg viewBox="0 0 100 100"><path fill="#dff9fb" stroke="#0984e3" stroke-width="3" d="M25 70 A15 15 0 0 1 20 40 A20 20 0 0 1 50 25 A22 22 0 0 1 80 40 A15 15 0 0 1 75 70 Z"/></svg>` },
+    moon: { pathStroke: "#e9c46a", pathDash: "3 3", svg: `<svg viewBox="0 0 100 100"><path fill="#ffe3a8" stroke="#d4a373" stroke-width="3" d="M60 20 A 35 35 0 1 0 80 75 A 30 30 0 1 1 60 20 Z"/></svg>` }
+};
+
+const themeSelector = document.getElementById("themeSelector");
+const lineContainer = document.getElementById("lineContainer");
+const toolbar = document.getElementById("textToolbar");
+const cardContainer = document.getElementById("cardContainer");
+const nativeDatePicker = document.getElementById("nativeDatePicker");
+
+let dateMode = "auto"; 
+let fixedMemoDateStr = "2026年05月20日"; 
+let selectedDateObj = new Date(2026, 4, 20);
+
+function formatChineseDate(dateObj) {
+    return `${dateObj.getFullYear()}年${String(dateObj.getMonth() + 1).padStart(2, '0')}月${String(dateObj.getDate()).padStart(2, '0')}日`;
+}
+
+function getDateDiffInfo(targetDate) {
+    if (!targetDate) return { days: 0, isFuture: false };
+    const today = new Date(); 
+    today.setHours(0,0,0,0);
+    const target = new Date(targetDate); 
+    target.setHours(0,0,0,0);
+    
+    const diffTime = target - today;
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays > 0) {
+        // 未来日期：倒计时（不计入起始日）
+        return {
+            days: diffDays,
+            isFuture: true
+        };
+    } else {
+        // 今天或过去：包含起始日（绝对值 + 1）
+        return {
+            days: Math.abs(diffDays) + 1,
+            isFuture: false
+        };
+    }
+}
+
+function updateDisplayedDate() {
+    const tagIcon = document.getElementById("tagIcon");
+    const tagText = document.getElementById("tagText");
+    const dateText = document.getElementById("dateText");
+    
+    if (dateMode === "auto") {
+        dateText.innerText = formatChineseDate(new Date());
+        tagIcon.innerText = "✨"; 
+        tagText.innerText = "TODAY'S LOVE";
+    } else {
+        if (fixedMemoDateStr) dateText.innerText = fixedMemoDateStr;
+        const diffInfo = getDateDiffInfo(selectedDateObj);
+        
+        if (diffInfo.isFuture) {
+            tagIcon.innerText = "⏳"; 
+            tagText.innerText = `还有 ${diffInfo.days} 天`;
+        } else {
+            tagIcon.innerText = "💖"; 
+            tagText.innerText = `相伴 ${diffInfo.days} 天`;
+        }
+    }
+}
+updateDisplayedDate();
+
+function switchTheme(themeKey, event) {
+    if(event) event.stopPropagation();
+    const theme = themes[themeKey];
+    if (!theme) return;
+
+    document.querySelectorAll(".theme-btn").forEach(btn => btn.classList.remove("active"));
+    const activeBtn = document.getElementById(`btn-${themeKey}`);
+    if (activeBtn) activeBtn.classList.add("active");
+
+    document.getElementById("mainPath").style.stroke = theme.pathStroke;
+    document.getElementById("mainPath").style.strokeDasharray = theme.pathDash;
+    for (let i = 1; i <= 4; i++) {
+        document.getElementById(`icon${i}`).innerHTML = theme.svg;
+    }
+}
+switchTheme('heart');
+
+lineContainer.addEventListener("click", (e) => {
+    e.stopPropagation(); hideAllToolbars();
+    const cardRect = cardContainer.getBoundingClientRect();
+    const lineRect = lineContainer.getBoundingClientRect();
+    themeSelector.style.left = `${Math.max(10, lineRect.left - cardRect.left + (lineRect.width / 2) - 160)}px`;
+    let top = lineRect.top - cardRect.top - 110;
+    themeSelector.style.top = `${top < 5 ? lineRect.bottom - cardRect.top + 5 : top}px`;
+    requestAnimationFrame(() => themeSelector.classList.add("active"));
+});
+
+['1', '2'].forEach(id => {
+    const wrap = document.getElementById('avatarWrap'+id);
+    wrap.addEventListener("click", (e) => {
+        e.stopPropagation(); hideAllToolbars(); 
+        document.getElementById('file'+id).click();
+        wrap.blur();
+    });
+    document.getElementById('file'+id).addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (file && file.type.startsWith("image/")) {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const imgNode = document.getElementById('avatar'+id);
+                imgNode.src = ev.target.result;
+                imgNode.style.display = "block";
+                wrap.classList.add("has-img");
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+});
+
+document.getElementById("btnAutoDate").addEventListener("click", (e) => {
+    e.stopPropagation(); dateMode = "auto";
+    document.getElementById("btnAutoDate").classList.add("active-date");
+    document.getElementById("btnTriggerMemoDate").classList.remove("active-date");
+    updateDisplayedDate();
+});
+
+nativeDatePicker.addEventListener("change", (e) => {
+    e.stopPropagation();
+    const val = e.target.value; 
+    if (!val) return;
+    const parts = val.split('-');
+    selectedDateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+    fixedMemoDateStr = `${parts[0]}年${parts[1]}月${parts[2]}日`;
+    dateMode = "memo";
+    document.getElementById("btnTriggerMemoDate").classList.add("active-date");
+    document.getElementById("btnAutoDate").classList.remove("active-date");
+    updateDisplayedDate();
+});
+
+let activeTextNode = null;
+const positionToolbar = (target) => {
+    const cardRect = cardContainer.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+    const toolbarRect = document.getElementById("textToolbar").getBoundingClientRect();
+    const computedStyle = window.getComputedStyle(target);
+    document.getElementById("inputFontSize").value = Math.round(parseFloat(computedStyle.fontSize));
+    document.getElementById("btnBold").classList.toggle("active-btn", parseInt(computedStyle.fontWeight) >= 600 || computedStyle.fontWeight === 'bold');
+    
+    let left = Math.max(12, targetRect.left - cardRect.left);
+    let top = targetRect.top - cardRect.top - toolbarRect.height - 8;
+    toolbar.style.left = `${Math.min(left, cardRect.width - toolbarRect.width - 12)}px`;
+    toolbar.style.top = `${top < 10 ? targetRect.bottom - cardRect.top + 8 : top}px`;
+    requestAnimationFrame(() => toolbar.classList.add("active"));
+};
+
+document.querySelectorAll(".editable-text, .tag-text").forEach(elem => {
+    const showMenu = (e) => {
+        e.stopPropagation(); activeTextNode = elem; hideAllToolbars();
+        document.getElementById("dateControlGroupWrapper").style.display = "none";
+        positionToolbar(activeTextNode);
+    };
+    elem.addEventListener("focus", showMenu); elem.addEventListener("click", showMenu);
+});
+
+document.getElementById("dateText").addEventListener("click", (e) => {
+    e.stopPropagation(); activeTextNode = e.target; hideAllToolbars();
+    document.getElementById("dateControlGroupWrapper").style.display = "inline-flex";
+    document.getElementById("dateControlGroup").style.display = "flex";
+    document.getElementById("btnAutoDate").classList.toggle("active-date", dateMode === "auto");
+    document.getElementById("btnTriggerMemoDate").classList.toggle("active-date", dateMode === "memo");
+    positionToolbar(activeTextNode);
+});
+
+document.getElementById("btnBold").addEventListener("click", (e) => {
+    e.stopPropagation(); if (!activeTextNode) return;
+    const isBold = parseInt(window.getComputedStyle(activeTextNode).fontWeight) >= 600;
+    activeTextNode.style.fontWeight = isBold ? "normal" : "bold";
+    e.target.classList.toggle("active-btn", !isBold);
+});
+const updateFontSize = (size) => {
+    if (!activeTextNode) return;
+    activeTextNode.style.fontSize = `${Math.max(8, Math.min(100, size))}px`;
+    document.getElementById("inputFontSize").value = Math.max(8, Math.min(100, size));
+    positionToolbar(activeTextNode);
+};
+document.getElementById("btnFontDec").addEventListener("click", (e) => { e.stopPropagation(); updateFontSize(parseInt(document.getElementById("inputFontSize").value) - 2); });
+document.getElementById("btnFontInc").addEventListener("click", (e) => { e.stopPropagation(); updateFontSize(parseInt(document.getElementById("inputFontSize").value) + 2); });
+document.getElementById("inputFontSize").addEventListener("input", (e) => updateFontSize(parseInt(e.target.value) || 12));
+
+const hideAllToolbars = () => { toolbar.classList.remove("active"); themeSelector.classList.remove("active"); };
+toolbar.addEventListener("click", e => e.stopPropagation());
+themeSelector.addEventListener("click", e => e.stopPropagation());
+document.addEventListener("click", () => { hideAllToolbars(); activeTextNode = null; });
+</script>
+</body>
+</html>
